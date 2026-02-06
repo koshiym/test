@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D家具レイアウトゲーム</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="ui">
+      <div class="panel">
+        <h1>3D家具レイアウト</h1>
+        <p>家具を追加して、クリックで選択。矢印キー/WASDで移動、Q/Eで回転。</p>
+        <p class="note">※ 3D表示にはローカルサーバー起動とネット接続が必要です。</p>
+        <div class="buttons">
+          <button data-add="sofa">ソファ追加</button>
+          <button data-add="table">テーブル追加</button>
+          <button data-add="bed">ベッド追加</button>
+          <button data-add="shelf">棚追加</button>
+        </div>
+        <div class="buttons secondary">
+          <button id="duplicate">複製</button>
+          <button id="remove">削除</button>
+          <button id="swap">入れ替えモード: OFF</button>
+        </div>
+        <div class="status">
+          <p>選択中: <span id="selected">なし</span></p>
+          <p>座標: <span id="position">-</span></p>
+          <p>ヒント: 右ドラッグで視点回転、ホイールでズーム。</p>
+        </div>
+        <div id="error" class="error" hidden></div>
+      </div>
+    </div>
+    <canvas id="scene"></canvas>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
