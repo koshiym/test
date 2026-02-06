@@ -6,7 +6,11 @@ const duplicateButton = document.querySelector("#duplicate");
 const removeButton = document.querySelector("#remove");
 const errorBox = document.querySelector("#error");
 
-const MODULE_BASE = "https://unpkg.com/three@0.159.0";
+const MODULE_CANDIDATES = [
+  "https://unpkg.com/three@0.159.0",
+  "https://cdn.jsdelivr.net/npm/three@0.159.0",
+  "https://esm.sh/three@0.159.0",
+];
 
 function showError(message) {
   errorBox.hidden = false;
@@ -17,16 +21,34 @@ async function init() {
   let THREE;
   let OrbitControls;
 
-  try {
-    THREE = await import(`${MODULE_BASE}/build/three.module.js`);
-    ({ OrbitControls } = await import(
-      `${MODULE_BASE}/examples/jsm/controls/OrbitControls.js`
-    ));
-  } catch (error) {
+  let lastError;
+
+  for (const baseUrl of MODULE_CANDIDATES) {
+    try {
+      if (baseUrl.includes("esm.sh")) {
+        THREE = await import(`${baseUrl}`);
+        ({ OrbitControls } = await import(
+          `${baseUrl}/examples/jsm/controls/OrbitControls.js`
+        ));
+      } else {
+        THREE = await import(`${baseUrl}/build/three.module.js`);
+        ({ OrbitControls } = await import(
+          `${baseUrl}/examples/jsm/controls/OrbitControls.js`
+        ));
+      }
+      lastError = null;
+      break;
+    } catch (error) {
+      lastError = error;
+      console.warn(`Failed to load Three.js from ${baseUrl}`, error);
+    }
+  }
+
+  if (!THREE || !OrbitControls) {
     showError(
       "3Dライブラリの読み込みに失敗しました。ローカルサーバーで開いているか、ネット接続があるか確認してください。"
     );
-    console.error(error);
+    console.error(lastError);
     return;
   }
 
