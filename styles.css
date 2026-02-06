@@ -1,0 +1,103 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+}
+
+body {
+  background: #0f172a;
+  color: #e2e8f0;
+  overflow: hidden;
+}
+
+canvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+
+.ui {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 2;
+}
+
+.panel {
+  width: 320px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 16px;
+  padding: 16px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.4);
+}
+
+.panel h1 {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.panel p {
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 10px;
+  color: #cbd5f5;
+}
+
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.buttons.secondary {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+button {
+  background: #2563eb;
+  border: none;
+  color: white;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: transform 0.1s ease, background 0.2s ease;
+}
+
+button:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+#swap.active {
+  background: #f97316;
+}
+
+.status {
+  margin-top: 8px;
+  border-top: 1px solid rgba(148, 163, 184, 0.3);
+  padding-top: 8px;
+}
+
+.status span {
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+@media (max-width: 640px) {
+  .panel {
+    width: 90vw;
+  }
+
+  .buttons.secondary {
+    grid-template-columns: 1fr 1fr;
+  }
+}
