@@ -6,10 +6,17 @@ const duplicateButton = document.querySelector("#duplicate");
 const removeButton = document.querySelector("#remove");
 const errorBox = document.querySelector("#error");
 
-const MODULE_CANDIDATES = [
-  "https://unpkg.com/three@0.159.0",
-  "https://cdn.jsdelivr.net/npm/three@0.159.0",
-  "https://esm.sh/three@0.159.0",
+const CDN_CANDIDATES = [
+  {
+    name: "unpkg",
+    three: "https://unpkg.com/three@0.159.0/build/three.min.js",
+    controls: "https://unpkg.com/three@0.159.0/examples/js/controls/OrbitControls.js",
+  },
+  {
+    name: "jsdelivr",
+    three: "https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.min.js",
+    controls: "https://cdn.jsdelivr.net/npm/three@0.159.0/examples/js/controls/OrbitControls.js",
+  },
 ];
 
 const furnitureSpecs = {
@@ -27,29 +34,36 @@ let mode = "fallback";
 let pickHandler = null;
 let updateRenderer = null;
 let threeContext = null;
-let fallbackContext = null;
 
 function showError(message) {
   errorBox.hidden = false;
   errorBox.textContent = message;
 }
 
-function loadFromBase(baseUrl) {
-  if (baseUrl.includes("esm.sh")) {
-    return Promise.all([
-      import(`${baseUrl}`),
-      import(`${baseUrl}/examples/jsm/controls/OrbitControls.js`),
-    ]).then(([THREE, controls]) => ({ THREE, OrbitControls: controls.OrbitControls }));
-  }
-
-  return Promise.all([
-    import(`${baseUrl}/build/three.module.js`),
-    import(`${baseUrl}/examples/jsm/controls/OrbitControls.js`),
-  ]).then(([THREE, controls]) => ({ THREE, OrbitControls: controls.OrbitControls }));
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = src;
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error(`Failed to load ${src}`));
+    document.head.appendChild(script);
+  });
 }
 
-function loadThree() {
-  return Promise.any(MODULE_CANDIDATES.map((baseUrl) => loadFromBase(baseUrl)));
+async function loadThree() {
+  for (const candidate of CDN_CANDIDATES) {
+    try {
+      await loadScript(candidate.three);
+      await loadScript(candidate.controls);
+      if (window.THREE && window.THREE.OrbitControls) {
+        return { THREE: window.THREE, OrbitControls: window.THREE.OrbitControls };
+      }
+    } catch (error) {
+      console.warn(`Failed to load Three.js from ${candidate.name}`, error);
+    }
+  }
+  return null;
 }
 
 function isThreeMesh(item) {
@@ -490,7 +504,6 @@ function initFallback() {
   };
 
   updateRenderer = render;
-  fallbackContext = { ctx, state };
 
   window.addEventListener("resize", resize);
   resize();
@@ -507,13 +520,13 @@ function initFallback() {
 
 function init() {
   bindControls();
-  loadThree()
-    .then((result) => {
+  loadThree().then((result) => {
+    if (result) {
       initThree(result);
-    })
-    .catch(() => {
+    } else {
       initFallback();
-    });
+    }
+  });
 }
 
 init();
