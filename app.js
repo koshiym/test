@@ -267,7 +267,7 @@ function initThree({ THREE }) {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color("#0b1120");
+  scene.background = new THREE.Color("#101826");
 
   const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
   camera.position.set(8, 7, 10);
@@ -327,9 +327,9 @@ function initThree({ THREE }) {
   const wallThickness = 0.25;
 
   const floorMat = new THREE.MeshStandardMaterial({
-    color: "#9aa5b1",
-    roughness: 0.55,
-    metalness: 0.05,
+    color: "#7a8694",
+    roughness: 0.45,
+    metalness: 0.08,
   });
   const floorGeo = new THREE.BoxGeometry(roomSize.width, 0.25, roomSize.depth);
   const floor = new THREE.Mesh(floorGeo, floorMat);
@@ -337,7 +337,7 @@ function initThree({ THREE }) {
   floor.position.y = -0.125;
   room.add(floor);
 
-  const ceilingMat = new THREE.MeshStandardMaterial({ color: "#f8fafc", roughness: 0.95 });
+  const ceilingMat = new THREE.MeshStandardMaterial({ color: "#f1f5f9", roughness: 0.9 });
   const ceiling = new THREE.Mesh(
     new THREE.BoxGeometry(roomSize.width, 0.18, roomSize.depth),
     ceilingMat
@@ -346,8 +346,8 @@ function initThree({ THREE }) {
   room.add(ceiling);
 
   const wallMat = new THREE.MeshStandardMaterial({
-    color: "#e2e8f0",
-    roughness: 0.85,
+    color: "#f1ede6",
+    roughness: 0.88,
   });
 
   const backWall = new THREE.Mesh(
@@ -380,7 +380,7 @@ function initThree({ THREE }) {
 
   room.add(backWall, frontWall, leftWall, rightWall);
 
-  const baseboardMat = new THREE.MeshStandardMaterial({ color: "#cbd5f5", roughness: 0.7 });
+  const baseboardMat = new THREE.MeshStandardMaterial({ color: "#d7dce4", roughness: 0.7 });
   const baseboardHeight = 0.18;
   const baseboardDepth = 0.07;
   const baseboard1 = new THREE.Mesh(
@@ -400,9 +400,9 @@ function initThree({ THREE }) {
   room.add(baseboard1, baseboard2, baseboard3, baseboard4);
 
   const windowFrameMat = new THREE.MeshStandardMaterial({
-    color: "#64748b",
-    roughness: 0.6,
-    metalness: 0.1,
+    color: "#6b7280",
+    roughness: 0.55,
+    metalness: 0.12,
   });
   const windowGlassMat = new THREE.MeshStandardMaterial({
     color: "#93c5fd",
@@ -423,14 +423,14 @@ function initThree({ THREE }) {
   door.position.set(4.2, 1.3, roomSize.depth / 2 - 0.2);
   room.add(door);
 
-  const rugMat = new THREE.MeshStandardMaterial({ color: "#f8fafc", roughness: 0.9 });
+  const rugMat = new THREE.MeshStandardMaterial({ color: "#fef9c3", roughness: 0.92 });
   const rug = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.05, 2.4), rugMat);
   rug.position.set(0, 0.03, 0.4);
   rug.receiveShadow = true;
   room.add(rug);
 
   const lampBaseMat = new THREE.MeshStandardMaterial({ color: "#334155", roughness: 0.4 });
-  const lampShadeMat = new THREE.MeshStandardMaterial({ color: "#fef3c7", roughness: 0.7 });
+  const lampShadeMat = new THREE.MeshStandardMaterial({ color: "#fde68a", roughness: 0.7 });
   const lamp = new THREE.Group();
   const lampPole = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 2.4), lampBaseMat);
   lampPole.position.y = 1.2;
@@ -440,6 +440,16 @@ function initThree({ THREE }) {
   lamp.position.set(-4, 0, 3.6);
   lamp.castShadow = true;
   room.add(lamp);
+
+  const ceilingLightMat = new THREE.MeshStandardMaterial({
+    color: "#f8fafc",
+    emissive: "#fef9c3",
+    emissiveIntensity: 1.2,
+    roughness: 0.4,
+  });
+  const ceilingLight = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.12, 1.4), ceilingLightMat);
+  ceilingLight.position.set(0, roomSize.height - 0.2, -0.5);
+  room.add(ceilingLight);
 
   room.traverse((child) => {
     if (child.isMesh) {
