@@ -263,6 +263,8 @@ function initThree({ THREE, OrbitControls }) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color("#0b1120");
@@ -273,35 +275,159 @@ function initThree({ THREE, OrbitControls }) {
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.maxPolarAngle = Math.PI / 2.1;
-  controls.target.set(0, 0.5, 0);
+  controls.target.set(0, 1.2, 0);
 
-  const ambient = new THREE.AmbientLight(0xffffff, 0.6);
-  const directional = new THREE.DirectionalLight(0xffffff, 0.8);
-  directional.position.set(5, 10, 4);
-  scene.add(ambient, directional);
+  const ambient = new THREE.AmbientLight(0xffffff, 0.55);
+  const directional = new THREE.DirectionalLight(0xffffff, 0.6);
+  directional.position.set(6, 10, 6);
+  directional.castShadow = true;
+  directional.shadow.mapSize.set(1024, 1024);
+  directional.shadow.camera.near = 0.5;
+  directional.shadow.camera.far = 30;
+  directional.shadow.camera.left = -10;
+  directional.shadow.camera.right = 10;
+  directional.shadow.camera.top = 10;
+  directional.shadow.camera.bottom = -10;
 
-  const floorGeo = new THREE.PlaneGeometry(16, 16);
-  const floorMat = new THREE.MeshStandardMaterial({ color: "#1e293b", roughness: 0.8 });
+  const warmLight = new THREE.PointLight(0xfff4e5, 0.7, 25, 1.6);
+  warmLight.position.set(-3, 4, 2);
+  warmLight.castShadow = true;
+
+  scene.add(ambient, directional, warmLight);
+
+  const room = new THREE.Group();
+  const roomSize = { width: 16, depth: 16, height: 5 };
+  const wallThickness = 0.3;
+
+  const floorMat = new THREE.MeshStandardMaterial({
+    color: "#9aa5b1",
+    roughness: 0.55,
+    metalness: 0.05,
+  });
+  const floorGeo = new THREE.BoxGeometry(roomSize.width, 0.3, roomSize.depth);
   const floor = new THREE.Mesh(floorGeo, floorMat);
-  floor.rotation.x = -Math.PI / 2;
-  scene.add(floor);
+  floor.receiveShadow = true;
+  floor.position.y = -0.15;
+  room.add(floor);
 
-  const grid = new THREE.GridHelper(16, 16, "#334155", "#1e293b");
+  const ceilingMat = new THREE.MeshStandardMaterial({ color: "#f8fafc", roughness: 0.95 });
+  const ceiling = new THREE.Mesh(
+    new THREE.BoxGeometry(roomSize.width, 0.2, roomSize.depth),
+    ceilingMat
+  );
+  ceiling.position.y = roomSize.height;
+  room.add(ceiling);
+
+  const wallMat = new THREE.MeshStandardMaterial({
+    color: "#e2e8f0",
+    roughness: 0.85,
+  });
+
+  const backWall = new THREE.Mesh(
+    new THREE.BoxGeometry(roomSize.width, roomSize.height, wallThickness),
+    wallMat
+  );
+  backWall.position.set(0, roomSize.height / 2, -roomSize.depth / 2);
+  backWall.receiveShadow = true;
+
+  const frontWall = new THREE.Mesh(
+    new THREE.BoxGeometry(roomSize.width, roomSize.height, wallThickness),
+    wallMat
+  );
+  frontWall.position.set(0, roomSize.height / 2, roomSize.depth / 2);
+  frontWall.receiveShadow = true;
+
+  const leftWall = new THREE.Mesh(
+    new THREE.BoxGeometry(wallThickness, roomSize.height, roomSize.depth),
+    wallMat
+  );
+  leftWall.position.set(-roomSize.width / 2, roomSize.height / 2, 0);
+  leftWall.receiveShadow = true;
+
+  const rightWall = new THREE.Mesh(
+    new THREE.BoxGeometry(wallThickness, roomSize.height, roomSize.depth),
+    wallMat
+  );
+  rightWall.position.set(roomSize.width / 2, roomSize.height / 2, 0);
+  rightWall.receiveShadow = true;
+
+  room.add(backWall, frontWall, leftWall, rightWall);
+
+  const baseboardMat = new THREE.MeshStandardMaterial({ color: "#cbd5f5", roughness: 0.7 });
+  const baseboardHeight = 0.22;
+  const baseboardDepth = 0.08;
+  const baseboard1 = new THREE.Mesh(
+    new THREE.BoxGeometry(roomSize.width, baseboardHeight, baseboardDepth),
+    baseboardMat
+  );
+  baseboard1.position.set(0, baseboardHeight / 2, -roomSize.depth / 2 + baseboardDepth);
+  const baseboard2 = baseboard1.clone();
+  baseboard2.position.set(0, baseboardHeight / 2, roomSize.depth / 2 - baseboardDepth);
+  const baseboard3 = new THREE.Mesh(
+    new THREE.BoxGeometry(baseboardDepth, baseboardHeight, roomSize.depth),
+    baseboardMat
+  );
+  baseboard3.position.set(-roomSize.width / 2 + baseboardDepth, baseboardHeight / 2, 0);
+  const baseboard4 = baseboard3.clone();
+  baseboard4.position.set(roomSize.width / 2 - baseboardDepth, baseboardHeight / 2, 0);
+  room.add(baseboard1, baseboard2, baseboard3, baseboard4);
+
+  const windowFrameMat = new THREE.MeshStandardMaterial({
+    color: "#64748b",
+    roughness: 0.6,
+    metalness: 0.1,
+  });
+  const windowGlassMat = new THREE.MeshStandardMaterial({
+    color: "#93c5fd",
+    transparent: true,
+    opacity: 0.35,
+    roughness: 0.2,
+  });
+  const windowGroup = new THREE.Group();
+  const windowFrame = new THREE.Mesh(new THREE.BoxGeometry(4, 2.4, 0.2), windowFrameMat);
+  const windowGlass = new THREE.Mesh(new THREE.BoxGeometry(3.6, 2, 0.05), windowGlassMat);
+  windowGlass.position.z = 0.08;
+  windowGroup.add(windowFrame, windowGlass);
+  windowGroup.position.set(-3, 2.7, -roomSize.depth / 2 + 0.2);
+  room.add(windowGroup);
+
+  const doorMat = new THREE.MeshStandardMaterial({ color: "#a16207", roughness: 0.65 });
+  const door = new THREE.Mesh(new THREE.BoxGeometry(1.4, 3, 0.15), doorMat);
+  door.position.set(5.6, 1.5, roomSize.depth / 2 - 0.2);
+  room.add(door);
+
+  const rugMat = new THREE.MeshStandardMaterial({ color: "#f8fafc", roughness: 0.9 });
+  const rug = new THREE.Mesh(new THREE.BoxGeometry(4.8, 0.05, 3), rugMat);
+  rug.position.set(0, 0.03, 0.6);
+  rug.receiveShadow = true;
+  room.add(rug);
+
+  const lampBaseMat = new THREE.MeshStandardMaterial({ color: "#334155", roughness: 0.4 });
+  const lampShadeMat = new THREE.MeshStandardMaterial({ color: "#fef3c7", roughness: 0.7 });
+  const lamp = new THREE.Group();
+  const lampPole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 3), lampBaseMat);
+  lampPole.position.y = 1.5;
+  const lampShade = new THREE.Mesh(new THREE.ConeGeometry(0.6, 0.9, 24), lampShadeMat);
+  lampShade.position.y = 3.2;
+  lamp.add(lampPole, lampShade);
+  lamp.position.set(-5, 0, 4.5);
+  lamp.castShadow = true;
+  room.add(lamp);
+
+  room.traverse((child) => {
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
+
+  scene.add(room);
+
+  const grid = new THREE.GridHelper(16, 16, "#cbd5f5", "#e2e8f0");
+  grid.position.y = 0.01;
+  grid.material.opacity = 0.25;
+  grid.material.transparent = true;
   scene.add(grid);
-
-  const walls = new THREE.Group();
-  const wallMat = new THREE.MeshStandardMaterial({ color: "#0f172a", side: THREE.DoubleSide });
-  const wallGeo = new THREE.PlaneGeometry(16, 4);
-  const backWall = new THREE.Mesh(wallGeo, wallMat);
-  backWall.position.set(0, 2, -8);
-  const sideWall = new THREE.Mesh(wallGeo, wallMat);
-  sideWall.rotation.y = Math.PI / 2;
-  sideWall.position.set(-8, 2, 0);
-  const sideWall2 = new THREE.Mesh(wallGeo, wallMat);
-  sideWall2.rotation.y = -Math.PI / 2;
-  sideWall2.position.set(8, 2, 0);
-  walls.add(backWall, sideWall, sideWall2);
-  scene.add(walls);
 
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
