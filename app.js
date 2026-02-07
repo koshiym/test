@@ -10,12 +10,10 @@ const CDN_CANDIDATES = [
   {
     name: "unpkg",
     three: "https://unpkg.com/three@0.159.0/build/three.min.js",
-    controls: "https://unpkg.com/three@0.159.0/examples/js/controls/OrbitControls.js",
   },
   {
     name: "jsdelivr",
     three: "https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.min.js",
-    controls: "https://cdn.jsdelivr.net/npm/three@0.159.0/examples/js/controls/OrbitControls.js",
   },
 ];
 
@@ -52,12 +50,14 @@ function loadScript(src) {
 }
 
 async function loadThree() {
+  if (window.THREE) {
+    return { THREE: window.THREE };
+  }
   for (const candidate of CDN_CANDIDATES) {
     try {
       await loadScript(candidate.three);
-      await loadScript(candidate.controls);
-      if (window.THREE && window.THREE.OrbitControls) {
-        return { THREE: window.THREE, OrbitControls: window.THREE.OrbitControls };
+      if (window.THREE) {
+        return { THREE: window.THREE };
       }
     } catch (error) {
       console.warn(`Failed to load Three.js from ${candidate.name}`, error);
@@ -198,7 +198,7 @@ function initDefault() {
 
 function bindControls() {
   canvas.addEventListener("pointerdown", (event) => {
-    if (pickHandler) {
+    if (pickHandler && event.button === 0) {
       pickHandler(event);
     }
   });
@@ -257,7 +257,7 @@ function bindControls() {
   });
 }
 
-function initThree({ THREE, OrbitControls }) {
+function initThree({ THREE }) {
   mode = "three";
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -272,10 +272,37 @@ function initThree({ THREE, OrbitControls }) {
   const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
   camera.position.set(8, 7, 10);
 
-  const controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
-  controls.maxPolarAngle = Math.PI / 2.1;
-  controls.target.set(0, 1.2, 0);
+  const controls = {
+    target: new THREE.Vector3(0, 1.2, 0),
+    distance: 14,
+    azimuth: Math.PI / 4,
+    polar: Math.PI / 3,
+    minPolar: 0.3,
+    maxPolar: Math.PI / 2.1,
+    minDistance: 6,
+    maxDistance: 24,
+    isDragging: false,
+    lastX: 0,
+    lastY: 0,
+  };
+
+  function updateCamera() {
+    const sinPolar = Math.sin(controls.polar);
+    const x = controls.distance * sinPolar * Math.cos(controls.azimuth);
+    const z = controls.distance * sinPolar * Math.sin(controls.azimuth);
+    const y = controls.distance * Math.cos(controls.polar);
+    camera.position.set(
+      controls.target.x + x,
+      controls.target.y + y,
+      controls.target.z + z
+    );
+    camera.lookAt(controls.target);
+  }
+
+  function clampControlValues() {
+    controls.polar = clamp(controls.polar, controls.minPolar, controls.maxPolar);
+    controls.distance = clamp(controls.distance, controls.minDistance, controls.maxDistance);
+  }
 
   const ambient = new THREE.AmbientLight(0xffffff, 0.55);
   const directional = new THREE.DirectionalLight(0xffffff, 0.6);
@@ -445,8 +472,44 @@ function initThree({ THREE, OrbitControls }) {
     }
   };
 
+  renderer.domElement.addEventListener("contextmenu", (event) => {
+    event.preventDefault();
+  });
+
+  renderer.domElement.addEventListener("pointerdown", (event) => {
+    if (event.button !== 2) return;
+    controls.isDragging = true;
+    controls.lastX = event.clientX;
+    controls.lastY = event.clientY;
+  });
+
+  renderer.domElement.addEventListener("pointermove", (event) => {
+    if (!controls.isDragging) return;
+    const deltaX = event.clientX - controls.lastX;
+    const deltaY = event.clientY - controls.lastY;
+    controls.lastX = event.clientX;
+    controls.lastY = event.clientY;
+    controls.azimuth -= deltaX * 0.005;
+    controls.polar += deltaY * 0.005;
+    clampControlValues();
+  });
+
+  window.addEventListener("pointerup", () => {
+    controls.isDragging = false;
+  });
+
+  renderer.domElement.addEventListener(
+    "wheel",
+    (event) => {
+      event.preventDefault();
+      controls.distance += event.deltaY * 0.01;
+      clampControlValues();
+    },
+    { passive: false }
+  );
+
   updateRenderer = () => {
-    controls.update();
+    updateCamera();
     renderer.render(scene, camera);
   };
 
