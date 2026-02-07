@@ -274,13 +274,13 @@ function initThree({ THREE }) {
 
   const controls = {
     target: new THREE.Vector3(0, 1.2, 0),
-    distance: 14,
+    distance: 11,
     azimuth: Math.PI / 4,
     polar: Math.PI / 3,
     minPolar: 0.3,
     maxPolar: Math.PI / 2.1,
-    minDistance: 6,
-    maxDistance: 24,
+    minDistance: 5,
+    maxDistance: 18,
     isDragging: false,
     lastX: 0,
     lastY: 0,
@@ -323,23 +323,23 @@ function initThree({ THREE }) {
   scene.add(ambient, directional, warmLight);
 
   const room = new THREE.Group();
-  const roomSize = { width: 16, depth: 16, height: 5 };
-  const wallThickness = 0.3;
+  const roomSize = { width: 12, depth: 12, height: 4.2 };
+  const wallThickness = 0.25;
 
   const floorMat = new THREE.MeshStandardMaterial({
     color: "#9aa5b1",
     roughness: 0.55,
     metalness: 0.05,
   });
-  const floorGeo = new THREE.BoxGeometry(roomSize.width, 0.3, roomSize.depth);
+  const floorGeo = new THREE.BoxGeometry(roomSize.width, 0.25, roomSize.depth);
   const floor = new THREE.Mesh(floorGeo, floorMat);
   floor.receiveShadow = true;
-  floor.position.y = -0.15;
+  floor.position.y = -0.125;
   room.add(floor);
 
   const ceilingMat = new THREE.MeshStandardMaterial({ color: "#f8fafc", roughness: 0.95 });
   const ceiling = new THREE.Mesh(
-    new THREE.BoxGeometry(roomSize.width, 0.2, roomSize.depth),
+    new THREE.BoxGeometry(roomSize.width, 0.18, roomSize.depth),
     ceilingMat
   );
   ceiling.position.y = roomSize.height;
@@ -381,8 +381,8 @@ function initThree({ THREE }) {
   room.add(backWall, frontWall, leftWall, rightWall);
 
   const baseboardMat = new THREE.MeshStandardMaterial({ color: "#cbd5f5", roughness: 0.7 });
-  const baseboardHeight = 0.22;
-  const baseboardDepth = 0.08;
+  const baseboardHeight = 0.18;
+  const baseboardDepth = 0.07;
   const baseboard1 = new THREE.Mesh(
     new THREE.BoxGeometry(roomSize.width, baseboardHeight, baseboardDepth),
     baseboardMat
@@ -411,33 +411,33 @@ function initThree({ THREE }) {
     roughness: 0.2,
   });
   const windowGroup = new THREE.Group();
-  const windowFrame = new THREE.Mesh(new THREE.BoxGeometry(4, 2.4, 0.2), windowFrameMat);
-  const windowGlass = new THREE.Mesh(new THREE.BoxGeometry(3.6, 2, 0.05), windowGlassMat);
+  const windowFrame = new THREE.Mesh(new THREE.BoxGeometry(3.4, 2, 0.2), windowFrameMat);
+  const windowGlass = new THREE.Mesh(new THREE.BoxGeometry(3, 1.7, 0.05), windowGlassMat);
   windowGlass.position.z = 0.08;
   windowGroup.add(windowFrame, windowGlass);
-  windowGroup.position.set(-3, 2.7, -roomSize.depth / 2 + 0.2);
+  windowGroup.position.set(-2.4, 2.3, -roomSize.depth / 2 + 0.2);
   room.add(windowGroup);
 
   const doorMat = new THREE.MeshStandardMaterial({ color: "#a16207", roughness: 0.65 });
-  const door = new THREE.Mesh(new THREE.BoxGeometry(1.4, 3, 0.15), doorMat);
-  door.position.set(5.6, 1.5, roomSize.depth / 2 - 0.2);
+  const door = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2.6, 0.15), doorMat);
+  door.position.set(4.2, 1.3, roomSize.depth / 2 - 0.2);
   room.add(door);
 
   const rugMat = new THREE.MeshStandardMaterial({ color: "#f8fafc", roughness: 0.9 });
-  const rug = new THREE.Mesh(new THREE.BoxGeometry(4.8, 0.05, 3), rugMat);
-  rug.position.set(0, 0.03, 0.6);
+  const rug = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.05, 2.4), rugMat);
+  rug.position.set(0, 0.03, 0.4);
   rug.receiveShadow = true;
   room.add(rug);
 
   const lampBaseMat = new THREE.MeshStandardMaterial({ color: "#334155", roughness: 0.4 });
   const lampShadeMat = new THREE.MeshStandardMaterial({ color: "#fef3c7", roughness: 0.7 });
   const lamp = new THREE.Group();
-  const lampPole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 3), lampBaseMat);
-  lampPole.position.y = 1.5;
-  const lampShade = new THREE.Mesh(new THREE.ConeGeometry(0.6, 0.9, 24), lampShadeMat);
-  lampShade.position.y = 3.2;
+  const lampPole = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 2.4), lampBaseMat);
+  lampPole.position.y = 1.2;
+  const lampShade = new THREE.Mesh(new THREE.ConeGeometry(0.5, 0.75, 24), lampShadeMat);
+  lampShade.position.y = 2.5;
   lamp.add(lampPole, lampShade);
-  lamp.position.set(-5, 0, 4.5);
+  lamp.position.set(-4, 0, 3.6);
   lamp.castShadow = true;
   room.add(lamp);
 
